@@ -39,7 +39,7 @@ void main(void)
    int playerTiles = 9000;
    if(cMapSize == 1)
    {
-      playerTiles = 11700;
+      playerTiles = 14040;
       // void rmEchoInfo(string echoString, int level)
       // Echoes an info string to the debugger output, can not be seen in AoT.
       rmEchoInfo("Large map");
@@ -171,12 +171,17 @@ void main(void)
    // towers avoid other towers
    int startingTowerID=rmCreateObjectDef("Starting tower");
    rmAddObjectDefItem(startingTowerID, "tower", 1, 0.0);
+   // We don't want the starting towers to be too close together, or
+   // too far apart.
    rmSetObjectDefMinDistance(startingTowerID, 22.0);
    rmSetObjectDefMaxDistance(startingTowerID, 28.0);
    rmAddObjectDefConstraint(startingTowerID, avoidTower);
+   // We also don't want them to be on impassable land.
    rmAddObjectDefConstraint(startingTowerID, shortAvoidImpassableLand);
 
    // gold avoids gold
+   // That is, any the first gold mine generated shouldn't be too close
+   // to any other gold mine generated
    int startingGoldID=rmCreateObjectDef("Starting gold");
    rmAddObjectDefItem(startingGoldID, "Gold mine", 1, 0.0);
    rmSetObjectDefMinDistance(startingGoldID, 20.0);
@@ -214,20 +219,35 @@ void main(void)
    rmSetObjectDefMaxDistance(closeChickensID, 25.0);
    rmAddObjectDefConstraint(closeChickensID, avoidFood);
 
-   int closeBerriesID=rmCreateObjectDef("close berries");
+   // Sometimes half of my chickens end up in a gold mine, which
+   // sucks. Let's be sure that we avoid gold when spawning the chickens.
+   rmAddObjectDefConstraint(closeChickensID, shortAvoidGold);
+
+   int closeBerriesID = rmCreateObjectDef("close berries");
    rmAddObjectDefItem(closeBerriesID, "berry bush", numBerry, 2.0);
    rmSetObjectDefMinDistance(closeBerriesID, 20.0);
    rmSetObjectDefMaxDistance(closeBerriesID, 25.0);
    rmAddObjectDefConstraint(closeBerriesID, avoidFood);
 
-   int closeHuntableID=rmCreateObjectDef("close huntable");
-   float huntableNumber=rmRandFloat(0, 1);
-   if(huntableNumber<0.3)
+   int closeHuntableID = rmCreateObjectDef("close huntable");
+   float huntableNumber = rmRandFloat(0, 1);
+
+   if(huntableNumber < 0.3)
+   {
       rmAddObjectDefItem(closeHuntableID, "deer", 8, 2.0);
-   else if(huntableNumber<0.6)
+   }
+   else if(huntableNumber < 0.6)
+   {
       rmAddObjectDefItem(closeHuntableID, "caribou", 6, 2.0);
+   }
    else
+   {
       rmAddObjectDefItem(closeHuntableID, "elk", 6, 2.0);
+   }
+
+   // void rmSetObjectDefMinDistance(int definitionID, float distance)
+   // Set the maximum distance ( TODO: From what? ) for the object definition
+   // ( in meters )
    rmSetObjectDefMinDistance(closeHuntableID, 30.0);
    rmSetObjectDefMaxDistance(closeHuntableID, 50.0);
    rmAddObjectDefConstraint(closeHuntableID, shortAvoidSettlement);
@@ -254,7 +274,7 @@ void main(void)
    rmAddObjectDefConstraint(mediumGoldID, farStartingSettleConstraint);
    rmAddObjectDefConstraint(mediumGoldID, forestObjConstraint);
 
-   // For this map, pick how many deer in a grouping.  Assign this
+   // For this map, pick how many deer in a grouping. Assign this
    int numHuntable=rmRandInt(12, 20);
 
    int mediumDeerID=rmCreateObjectDef("medium deer");
@@ -268,6 +288,8 @@ void main(void)
    // gold avoids gold, Settlements and TCs
    int farGoldID=rmCreateObjectDef("far gold");
    rmAddObjectDefItem(farGoldID, "Gold mine", 1, 0.0);
+   // Why were the minDistance and maxDistance constraints removed
+   // for the far gold mine?
 /*   rmSetObjectDefMinDistance(farGoldID, 80.0);
    rmSetObjectDefMaxDistance(farGoldID, 150.0); */
    rmAddObjectDefConstraint(farGoldID, avoidGold);
@@ -311,35 +333,60 @@ void main(void)
 
    // hunted avoids hunted and TCs
    int bonusHuntableID=rmCreateObjectDef("bonus huntable");
-   float bonusChance=rmRandFloat(0, 1);
-   if(bonusChance<0.3)
+   float bonusHuntableChance = rmRandFloat(0, 1);
+
+   if(bonusHuntableChance < 0.3)
+   {
       rmAddObjectDefItem(bonusHuntableID, "deer", 12, 2.0);
-   else if(bonusChance<0.6)
-      rmAddObjectDefItem(bonusHuntableID, "elk", 8, 2.0);
+   }
+   else if(bonusHuntableChance < 0.6)
+   {
+      rmAddObjectDefItem(bonusHuntableID, "elk", 10, 2.0);
+   }
    else
+   {
       rmAddObjectDefItem(bonusHuntableID, "caribou", 8, 2.0);
+   }
+
    rmSetObjectDefMinDistance(bonusHuntableID, 0.0);
    rmSetObjectDefMaxDistance(bonusHuntableID, rmXFractionToMeters(0.5));
+   // Stay away from myself?
    rmAddObjectDefConstraint(bonusHuntableID, avoidBonusHuntable);
+   // Stay away from other huntable herds
    rmAddObjectDefConstraint(bonusHuntableID, avoidHuntable);
+   // Add the bonusHuntableID to the bonusHuntable class
    rmAddObjectDefToClass(bonusHuntableID, classBonusHuntable);
+   // Stay away from impassable land
    rmAddObjectDefConstraint(bonusHuntableID, shortAvoidImpassableLand);
+   // Stay away from settlements
    rmAddObjectDefConstraint(bonusHuntableID, farStartingSettleConstraint);
+   // Stay away from forsts
    rmAddObjectDefConstraint(bonusHuntableID, forestObjConstraint);
 
    // hunted avoids hunted and TCs
    int bonusHuntableID2=rmCreateObjectDef("bonus huntable 2");
-   float bonusChance3=rmRandFloat(0, 1);
-   if(bonusChance3<0.3)
+   // Roll again for another bonus huntable
+   float additionalBonusHuntableChance = rmRandFloat(0, 1);
+
+   if(additionalBonusHuntableChance < 0.3)
+   {
       rmAddObjectDefItem(bonusHuntableID2, "deer", 10, 2.0);
-   else if(bonusChance3<0.6)
+   }
+   else if(additionalBonusHuntableChance < 0.6)
+   {
       rmAddObjectDefItem(bonusHuntableID2, "elk", 12, 2.0);
+   }
    else
+   {
       rmAddObjectDefItem(bonusHuntableID2, "caribou", 8, 2.0);
+   }
+
    rmSetObjectDefMinDistance(bonusHuntableID2, 0.0);
    rmSetObjectDefMaxDistance(bonusHuntableID2, rmXFractionToMeters(0.5));
+   // Make sure that the bonus huntable herds aren't too close together
    rmAddObjectDefConstraint(bonusHuntableID2, avoidBonusHuntable);
    rmAddObjectDefConstraint(bonusHuntableID2, avoidHuntable);
+   // Add second bonus huntable herd to the same class as the previous one
    rmAddObjectDefToClass(bonusHuntableID2, classBonusHuntable);
    rmAddObjectDefConstraint(bonusHuntableID2, shortAvoidImpassableLand);
    rmAddObjectDefConstraint(bonusHuntableID2, farStartingSettleConstraint);
@@ -382,22 +429,32 @@ void main(void)
    int baseMountainWidth = 0;
    int connectionWidth = 0;
    if (cNumberTeams < 3)
-      {
+   {
       baseMountainWidth = 30;
       connectionWidth = 30;
-      }
-   else
-      {
+   }
+   // Support large games by giving additional room
+   else if (cNumberTeams < 6)
+   {
       baseMountainWidth = 20;
       connectionWidth = 25;
-      }
+   }
+   // Support _very_ large games by giving additional room
+   else
+   {
+       baseMountainWidth = 15;
+       connectionWidth = 20;
+   }
+
    int teamConstraint=rmCreateClassDistanceConstraint("how wide the mountain is", teamClass, baseMountainWidth);
 
    // Set up a connection... we'll add all the team areas to it.
    int connectionID=rmCreateConnection("passes");
    rmAddConnectionTerrainReplacement(connectionID, CLIFFNORSEA, SNOWGRASS25);
    rmAddConnectionTerrainReplacement(connectionID, CLIFFNORSEB, SNOWGRASS25);
-   rmAddConnectionTerrainReplacement(connectionID, CLIFFNORSEA, SNOWGRASS25);
+   // Create a connection that connects areas, but not all areas
+   // When using cConnectAreas, you must specify each area to be connected
+   // by calling rmAddConnectionArea
    rmSetConnectionType(connectionID, cConnectAreas, false, 1.0);
    rmSetConnectionWarnFailure(connectionID, false);
    rmSetConnectionWidth(connectionID, connectionWidth, 4);
@@ -408,13 +465,15 @@ void main(void)
    rmSetConnectionHeightBlend(connectionID, 2);
    rmAddConnectionToClass(connectionID, connectionClass);
 
-   /* Add chance for another connection in 2 team games. The more players, the less the chance */
 
+   // Add chance for another connection in 2 team games.
+   // The more players, the less the chance
    bool secondConnectionExists = false;
    float secondConnectionChance = rmRandFloat(0.0, 1.0);
    if(cNumberTeams < 3)
    {
-      if(cNumberNonGaiaPlayers <4)
+       // TODO: Is there no logical and operator?
+      if(cNumberNonGaiaPlayers < 4)
       {
          if(secondConnectionChance < 0.8)
             secondConnectionExists = true;
@@ -426,7 +485,7 @@ void main(void)
       }
    }
 
-   rmEchoInfo("secondConnectionChance "+secondConnectionChance+ "secondConnectionExists "+secondConnectionExists);
+   rmEchoInfo("secondConnectionChance "+secondConnectionChance+ " secondConnectionExists "+secondConnectionExists);
 
    if(secondConnectionExists)
    {
@@ -463,9 +522,10 @@ void main(void)
 
    for(i=0; <cNumberTeams)
    {
+      // Create an area for the team
       int teamID=rmCreateArea("team"+i);
       rmSetTeamArea(i, teamID);
-      teamSize = percentPerPlayer*rmGetNumberPlayersOnTeam(i);
+      teamSize = percentPerPlayer * rmGetNumberPlayersOnTeam(i);
       rmSetAreaSize(teamID, teamSize*0.9, teamSize*1.1);
 /*      rmSetAreaSize(teamID, teamPercentArea, teamPercentArea); */
       rmSetAreaWarnFailure(teamID, false);
@@ -484,6 +544,8 @@ void main(void)
       rmAddAreaConstraint(teamID, teamConstraint);
       rmAddAreaConstraint(teamID, teamEdgeConstraint);
       rmSetAreaLocTeam(teamID, i);
+      // Be sure that any two players on a team are connected
+      // together
       rmAddConnectionArea(connectionID, teamID);
       if(secondConnectionExists)
          rmAddConnectionArea(alternateConnection, teamID);
@@ -493,9 +555,9 @@ void main(void)
    // initial dress up of mountains
    int patchConstraint=rmCreateClassDistanceConstraint("patch vs patch", patchClass, 10);
    int failCount = 0;
-   for(j=0; <cNumberNonGaiaPlayers*60)
+   for(j=0; < cNumberNonGaiaPlayers*60)
    {
-      int rockPatch=rmCreateArea("rock patch"+j);
+      int rockPatch = rmCreateArea("rock patch"+j);
       rmSetAreaSize(rockPatch, rmAreaTilesToFraction(50), rmAreaTilesToFraction(100));
       rmSetAreaWarnFailure(rockPatch, false);
 /*      rmSetAreaBaseHeight(rockPatch, rmRandFloat(12.0, 15.0)); */
@@ -599,11 +661,11 @@ void main(void)
          // creates a logical area that can be operated on
          // returns an area id
          int id2=rmCreateArea("grass patch"+i +j, rmAreaID("player"+i));
-         // void rmSetAreaSize(int areaID, TODO)
+         // void rmSetAreaSize(int areaID, float minFraction, float maxFraction)
+         // Set the area size to a min / max fraction of the map
          rmSetAreaSize(id2, rmAreaTilesToFraction(400), rmAreaTilesToFraction(600));
-         // void setAreaWarnFailure(int areaID, bool switch)
-         // Likely turns warning on decoration failure through logging on
-         // or off?
+         // void setAreaWarnFailure(int areaID, bool warn)
+         // Turns warning on decoration failure through logging on
          rmSetAreaWarnFailure(id2, false);
          // void rmAreaTerrainType(int areaID, string terrain)
          // Sets the area terrain type, but perhaps not the actual decoration?
@@ -629,6 +691,8 @@ void main(void)
    // Place starting settlements.
    // Close things....
    // TC
+   // Place object definition per player
+   // Apparently has default third argument long placeCount=1
    rmPlaceObjectDefPerPlayer(startingSettlementID, true);
 
    // Slight Elev.
@@ -666,7 +730,17 @@ void main(void)
 
 
    // Settlements.
-// Settlements.
+   // int rmAddFairLoc(
+   //    string unitName,
+   //    bool forward,
+   //    bool inside,
+   //    float minPlayerDist,
+   //    float maxPlayerDist,
+   //    float locDist,
+   //    float edgeDist,
+   //    bool playerArea,
+   //    bool teamArea
+   // )
    id=rmAddFairLoc("Settlement", false, true,  60, 80, 40, 10, false, true); /* bool forward bool inside */
    rmAddFairLocConstraint(id, shortAvoidImpassableLand);
 
@@ -706,13 +780,26 @@ void main(void)
    // Cows
    rmPlaceObjectDefPerPlayer(closeCowsID, true);
 
-   // Chickens or berries.
+   // Chickens, berries, or both ( if they hit the dice roll right ! )
+   float startingFoodChance = rmRandFloat(0.0, 1.0);
    for(i=1; <cNumberPlayers)
    {
-      if(rmRandFloat(0.0, 1.0)<0.5)
+      if(startingFoodChance < 0.5)
+      {
          rmPlaceObjectDefAtLoc(closeChickensID, 0, rmPlayerLocXFraction(i), rmPlayerLocZFraction(i));
+         if (startingFoodChance > 0.45)
+         {
+             rmPlaceObjectDefAtLoc(closeBerriesID, 0, rmPlayerLocXFraction(i), rmPlayerLocZFraction(i));
+         }
+      }
       else
+      {
          rmPlaceObjectDefAtLoc(closeBerriesID, 0, rmPlayerLocXFraction(i), rmPlayerLocZFraction(i));
+         if (startingFoodChance > 0.95)
+         {
+             rmPlaceObjectDefAtLoc(closeChickensID, 0, rmPlayerLocXFraction(i), rmPlayerLocZFraction(i));
+         }
+      }
    }
 
 
@@ -749,7 +836,7 @@ void main(void)
 
          if(rmBuildArea(forestID)==false)
          {
-            // Stop trying once we fail 3 times in a row.
+            // Stop trying once we fail 5 times in a row.
             failCount++;
             if(failCount==5)
                break;
