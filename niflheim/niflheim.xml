@@ -1,2 +1,2 @@
 <?xml version = "1.0" encoding = "UTF-8"?>
-<mapinfo detailsText="Mountain passes are the only connections among valleys owned by different teams. Spring has rolled over the mountains, and food is plentiful." imagepath="ui\ui map goatunheim 256x256" displayName="Niflheim" cannotReplace=""/>
+<mapinfo detailsText="Mountain passes are the only connections among valleys owned by different teams. Spring has rolled over the mountains, and food is plentiful." imagepath="ui\niflheim.tga" displayName="Niflheim" cannotReplace=""/>
