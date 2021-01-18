@@ -205,7 +205,6 @@ void main(void)
    rmAddObjectDefConstraint(mediumCowsID, farStartingSettleConstraint);
    rmAddObjectDefConstraint(mediumCowsID, closeForestConstraint);
 
-
    // For this map, pick how many deer are in a grouping.
    int numHuntable = rmRandInt(8, 14);
 
@@ -218,7 +217,6 @@ void main(void)
    rmAddObjectDefConstraint(mediumDeerID, cliffConstraint);
    rmAddObjectDefConstraint(mediumDeerID, closeForestConstraint);
    rmAddObjectDefConstraint(mediumDeerID, avoidAll);
-
 
    // far objects
 
@@ -277,7 +275,6 @@ void main(void)
    rmSetObjectDefMinDistance(farSkraelingID, 50.0);
    rmSetObjectDefMaxDistance(farSkraelingID, 150.0);
    rmAddObjectDefConstraint(farSkraelingID, farStartingSettleConstraint);
-
 
    // Coming up, we add three bonus huntables
    // They're all structured roughly the same; they're just in different groupings
@@ -364,7 +361,6 @@ void main(void)
    rmSetObjectDefMaxDistance(farhawkID, rmXFractionToMeters(0.5));
 
    // Relics avoid TCs
-
    int relicID = rmCreateObjectDef("relic");
    rmAddObjectDefItem(relicID, "relic", 1, 0.0);
    rmSetObjectDefMinDistance(relicID, 40.0);
@@ -376,13 +372,9 @@ void main(void)
    rmAddObjectDefConstraint(relicID, centerConstraint);
    rmAddObjectDefConstraint(relicID, closeForestConstraint);
 
-
-
-
    // ===================================Done defining objects=============================================
 
    // ###################################### Create areas ###############################################
-
 
    rmPlacePlayersCircular(0.4, 0.45, rmDegreesToRadians(5.0));
 
@@ -417,12 +409,10 @@ void main(void)
    int passesID = rmCreateConnection("passes");
    rmSetConnectionType(passesID, cConnectPlayers, false, 1.0);
    rmSetConnectionWidth(passesID, 28, 2);
-   // TODO debugging: warn on fail to connect
-   rmSetConnectionWarnFailure(passesID, true);
+   rmSetConnectionWarnFailure(passesID, false);
    rmSetConnectionBaseHeight(passesID, 4.0);
    rmSetConnectionHeightBlend(passesID, 5.0);
    rmSetConnectionSmoothDistance(passesID, 4.0);
-
    rmSetConnectionPositionVariance(passesID, 0.5);
 
    // Start and end of passes depend on the center area constraint
@@ -435,12 +425,10 @@ void main(void)
 
    // Replace CliffNorseA in the joining areas with SnowGrass75
    // CliffNorseA is a direct result of using CliffNorseA as terrain basis
-   // this will be removed / changed
    rmAddConnectionTerrainReplacement(passesID, "cliffNorseA", SNOWGRASS75);
 
-
    // Create extra connection for 2 player?
-   // In this instance, we want to have the river broken in two places
+   // In this instance, we want to have the mountain pass broken in two places
    // when there are two players, if that's possible to do easily.
 
    int passesConstraint = rmCreateClassDistanceConstraint("stay away from passes", classPasses, 80.0);
@@ -538,13 +526,12 @@ void main(void)
    }
 
    /// Snow Pine Forest.
-
    int forestObjConstraint=rmCreateTypeDistanceConstraint("forest obj", "all", 6.0);
    int forestConstraint=rmCreateClassDistanceConstraint("forest v forest", rmClassID("forest"), 16.0);
    int oakForestConstraint=rmCreateClassDistanceConstraint("oakforest v oakforest", rmClassID("forest"), 30.0);
-
    int forestSettleConstraint=rmCreateClassDistanceConstraint("forest settle", rmClassID("starting settlement"), 20.0);
    int forestCount=8*cNumberNonGaiaPlayers;
+
    int failCount=0;
    for(i=0; <forestCount)
    {
@@ -571,7 +558,6 @@ void main(void)
       rmSetAreaSmoothDistance(forestID, 4);
       rmSetAreaHeightBlend(forestID, 2);
 
-
       if(rmBuildArea(forestID)==false)
       {
          // Stop trying once we fail 3 times in a row.
@@ -585,9 +571,7 @@ void main(void)
       }
    }
 
-
-/// Player Forests.
-
+   /// Player Forests.
    int playerForestCount=8*cNumberNonGaiaPlayers;
    int playerfailCount=0;
    for(i=0; <forestCount)
@@ -601,7 +585,6 @@ void main(void)
       rmAddAreaConstraint(playerForestID, oakForestConstraint);
       rmAddAreaConstraint(playerForestID, avoidImpassableLand);
       rmAddAreaToClass(playerForestID, classForest);
-
       rmSetAreaMinBlobs(playerForestID, 2);
       rmSetAreaMaxBlobs(playerForestID, 4);
       rmSetAreaMinBlobDistance(playerForestID, 16.0);
@@ -670,7 +653,6 @@ void main(void)
    }
 
    // Cliffage
-   // TODO this is a pretty serious block
    int numTries=3*cNumberNonGaiaPlayers;
    failCount=0;
    for(i=0; <numTries)
@@ -683,7 +665,6 @@ void main(void)
       rmAddAreaToClass(cliffID, classCliff);
       rmAddAreaConstraint(cliffID, avoidBuildings);
       rmAddAreaConstraint(cliffID, farAvoidImpassableLand);
-      //   rmAddAreaConstraint(cliffID, shortCoreBonusConstraint);
       rmAddAreaConstraint(cliffID, avoidAll);
       rmSetAreaMinBlobs(cliffID, 10);
       rmSetAreaMaxBlobs(cliffID, 10);
@@ -709,8 +690,6 @@ void main(void)
          failCount=0;
       }
    }
-
-
 
    for(i=1; <cNumberPlayers*40)
    {
@@ -743,9 +722,7 @@ void main(void)
       rmBuildArea(id7);
    }
 
-
    // PLACE STARTING TOWN AND RESOURCES
-
    // Straggler trees.
 
    int stragglerTreeID=rmCreateObjectDef("straggler tree");
@@ -754,8 +731,6 @@ void main(void)
    rmSetObjectDefMaxDistance(stragglerTreeID, 15.0);
    rmAddObjectDefConstraint(stragglerTreeID, avoidImpassableLand);
    rmPlaceObjectDefPerPlayer(stragglerTreeID, false, rmRandInt(3, 7));
-
-
 
    // Gold
    rmPlaceObjectDefPerPlayer(startingGoldID, false);
