@@ -6,7 +6,6 @@
 string FORESTFLOORPINE = "ForestFloorPine";
 string FORESTFLOORPINESNOW = "ForestFloorPineSnow";
 string NORSERIVER = "Norse River";
-string RIVERICYA = "RiverIcyA";
 
 // Least to most snow coverage
 string SNOWGRASS25 = "SnowGrass25";
@@ -37,22 +36,17 @@ void main(void)
    rmEchoInfo("Map size="+size+"m x "+size+"m");
    rmSetMapSize(size, size);
 
-   // Set up default water.
-   rmSetSeaLevel(1.0);
-   rmSetSeaType(NORSERIVER);
-
-   // Init map.
-   rmTerrainInitialize("water");
+   // Initialize the map terrain
+   rmSetSeaLevel(0.0);
+   rmTerrainInitialize("cliffNorseA", 12.0);
    rmSetLightingSet("anatolia");
 
    // Define some classes.
-   // TODO we'll remove these at some point
    int classIsland=rmDefineClass("island");
-   //    int classBonusIsland=rmDefineClass("bonus island");
    int classPlayerCore=rmDefineClass("player core");
    int classPlayer=rmDefineClass("player");
    int classForest=rmDefineClass("forest");
-   int classShallows=rmDefineClass("shallows");
+   int classPasses = rmDefineClass("passes");
    rmDefineClass("corner");
    rmDefineClass("starting settlement");
    rmDefineClass("center");
@@ -65,16 +59,16 @@ void main(void)
    int farEdgeConstraint=rmCreateBoxConstraint("far edge of map", rmXTilesToFraction(20), rmZTilesToFraction(20), 1.0-rmXTilesToFraction(20), 1.0-rmZTilesToFraction(20));
    int playerEdgeConstraint=rmCreateBoxConstraint("player edge of map", rmXTilesToFraction(8), rmZTilesToFraction(8), 1.0-rmXTilesToFraction(8), 1.0-rmZTilesToFraction(8), 0.01);
 
-   int centerConstraint=rmCreateClassDistanceConstraint("stay away from center", rmClassID("center"), 60.0);
-   int shortCenterConstraint=rmCreateClassDistanceConstraint("small stay away from center", rmClassID("center"), 60.0);
+   int centerConstraint = rmCreateClassDistanceConstraint("stay away from center", rmClassID("center"), 60.0);
+   int shortCenterConstraint = rmCreateClassDistanceConstraint("small stay away from center", rmClassID("center"), 60.0);
 
    // Player area constraint.
    int islandConstraint = rmCreateClassDistanceConstraint("stay away from islands", classIsland, 30.0);
    int playerConstraint = rmCreateClassDistanceConstraint("bonus Settlement stay away from players", classPlayer, 20);
 
    // corner constraint.
-   int cornerConstraint=rmCreateClassDistanceConstraint("stay away from corner", rmClassID("corner"), 15.0);
-   int cornerOverlapConstraint=rmCreateClassDistanceConstraint("don't overlap corner", rmClassID("corner"), 2.0);
+   int cornerConstraint = rmCreateClassDistanceConstraint("stay away from corner", rmClassID("corner"), 15.0);
+   int cornerOverlapConstraint = rmCreateClassDistanceConstraint("don't overlap corner", rmClassID("corner"), 2.0);
 
    // Settlement constraint.
    int avoidSettlement=rmCreateTypeDistanceConstraint("avoid settlement", "AbstractSettlement", 50.0);
@@ -110,6 +104,7 @@ void main(void)
    int farAvoidImpassableLand = rmCreateTerrainDistanceConstraint("far avoid impassable land", "land", false, 20.0);
 
    // Stay near shore
+   // TODO remove this
    int nearShore=rmCreateTerrainMaxDistanceConstraint("near shore", "water", true, 6.0);
 
    //Forest close constraint
@@ -401,18 +396,19 @@ void main(void)
 
    rmPlacePlayersCircular(0.4, 0.45, rmDegreesToRadians(5.0));
 
-   int centerID=rmCreateArea("center");
+   // Creating the mountain in the center of the map
+   int centerID = rmCreateArea("center");
    rmSetAreaSize(centerID, 0.0005, 0.0005);
    rmSetAreaLocation(centerID, 0.5, 0.5);
-   rmSetAreaMinBlobs(centerID, 6);
-   rmSetAreaMaxBlobs(centerID, 8);
-   rmSetAreaMinBlobDistance(centerID, 20.0);
-   rmSetAreaMaxBlobDistance(centerID, 30.0);
+   rmSetAreaMinBlobs(centerID, 2);
+   rmSetAreaMaxBlobs(centerID, 4);
+   rmSetAreaMinBlobDistance(centerID, 5.0);
+   rmSetAreaMaxBlobDistance(centerID, 15.0);
    rmSetAreaCoherence(centerID, 0.1);
    rmAddAreaToClass(centerID, rmClassID("center"));
    rmBuildArea(centerID);
 
-   int centerAreaConstraint=rmCreateAreaDistanceConstraint("stay away from lake", centerID, 70);
+   int centerAreaConstraint=rmCreateAreaDistanceConstraint("stay away from center mountain", centerID, 70);
 
    // Creating Player Cores
    for(i=1; <cNumberPlayers)
@@ -428,47 +424,54 @@ void main(void)
    }
 
    // Create connections
-   int shallowsID = rmCreateConnection("shallows");
-   rmSetConnectionType(shallowsID, cConnectPlayers, false, 1.0);
-   rmSetConnectionWidth(shallowsID, 28, 2);
-   rmSetConnectionWarnFailure(shallowsID, false);
-   rmSetConnectionBaseHeight(shallowsID, 2.0);
-   rmSetConnectionHeightBlend(shallowsID, 2.0);
-   rmSetConnectionSmoothDistance(shallowsID, 3.0);
+   int passesID = rmCreateConnection("passes");
+   rmSetConnectionType(passesID, cConnectPlayers, false, 1.0);
+   rmSetConnectionWidth(passesID, 28, 2);
+   // TODO debugging: warn on fail to connect
+   rmSetConnectionWarnFailure(passesID, true);
+   rmSetConnectionBaseHeight(passesID, 4.0);
+   rmSetConnectionHeightBlend(passesID, 5.0);
+   rmSetConnectionSmoothDistance(passesID, 4.0);
 
-   rmSetConnectionPositionVariance(shallowsID, 0.5);
+   rmSetConnectionPositionVariance(passesID, 0.5);
 
-   rmAddConnectionStartConstraint(shallowsID, centerAreaConstraint);
-   rmAddConnectionEndConstraint(shallowsID, centerAreaConstraint);
+   // Start and end of passes depend on the center area constraint
+   rmAddConnectionStartConstraint(passesID, centerAreaConstraint);
+   rmAddConnectionEndConstraint(passesID, centerAreaConstraint);
 
-   rmAddConnectionToClass(shallowsID, classShallows);
-   rmAddConnectionStartConstraint(shallowsID, edgeConstraint);
-   rmAddConnectionEndConstraint(shallowsID, edgeConstraint);
+   rmAddConnectionToClass(passesID, classPasses);
+   rmAddConnectionStartConstraint(passesID, edgeConstraint);
+   rmAddConnectionEndConstraint(passesID, edgeConstraint);
 
-   rmAddConnectionTerrainReplacement(shallowsID, "RiverGrassyA", RIVERICYA);
+   // Replace CliffNorseA in the joining areas with SnowGrass75
+   // CliffNorseA is a direct result of using CliffNorseA as terrain basis
+   // this will be removed / changed
+   rmAddConnectionTerrainReplacement(passesID, "cliffNorseA", SNOWGRASS75);
 
 
    // Create extra connection for 2 player?
    // In this instance, we want to have the river broken in two places
    // when there are two players, if that's possible to do easily.
 
-   int shallowsConstraint=rmCreateClassDistanceConstraint("stay away from shallows", classShallows, 80.0);
+   int passesConstraint = rmCreateClassDistanceConstraint("stay away from passes", classPasses, 80.0);
 
    if (cNumberNonGaiaPlayers < 3)
    {
-      int teamShallowsID=rmCreateConnection("team shallows");
-      rmSetConnectionType(teamShallowsID, cConnectPlayers, false, 1.0);
-      rmSetConnectionWarnFailure(teamShallowsID, false);
-      rmSetConnectionWidth(teamShallowsID, 26, 2);
-      rmSetConnectionBaseHeight(teamShallowsID, 2.0);
-      rmSetConnectionHeightBlend(teamShallowsID, 2.0);
-      rmAddConnectionStartConstraint(teamShallowsID, edgeConstraint);
-      rmAddConnectionEndConstraint(teamShallowsID, edgeConstraint);
-      rmAddConnectionStartConstraint(teamShallowsID, shallowsConstraint);
-      rmAddConnectionEndConstraint(teamShallowsID, shallowsConstraint);
-      rmSetConnectionPositionVariance(shallowsID, -1);
-      rmSetConnectionSmoothDistance(teamShallowsID, 3.0);
-      rmAddConnectionTerrainReplacement(teamShallowsID, "RiverGrassyA", SNOWSAND25);
+      int teamPassID=rmCreateConnection("team pass");
+      rmSetConnectionType(teamPassID, cConnectPlayers, false, 1.0);
+      rmSetConnectionWarnFailure(teamPassID, false);
+      rmSetConnectionWidth(teamPassID, 26, 2);
+
+      rmSetConnectionBaseHeight(teamPassID, 4.0);
+      rmSetConnectionHeightBlend(teamPassID, 5.0);
+      rmSetConnectionSmoothDistance(teamPassID, 4.0);
+
+      rmAddConnectionStartConstraint(teamPassID, edgeConstraint);
+      rmAddConnectionEndConstraint(teamPassID, edgeConstraint);
+      rmAddConnectionStartConstraint(teamPassID, passesConstraint);
+      rmAddConnectionEndConstraint(teamPassID, passesConstraint);
+      rmSetConnectionPositionVariance(teamPassID, -1);
+      rmAddConnectionTerrainReplacement(teamPassID, "cliffNorseA", SNOWSAND25);
    }
 
    // Set up player areas.
@@ -476,7 +479,7 @@ void main(void)
    for(i=1; <cNumberPlayers)
    {
       // Create the area.
-      id=rmCreateArea("Player"+i);
+      id = rmCreateArea("Player"+i);
       rmSetPlayerArea(i, id);
       rmSetAreaSize(id, 0.5, 0.5);
       rmAddAreaToClass(id, classIsland);
@@ -498,8 +501,8 @@ void main(void)
       }
 
       rmSetAreaLocPlayer(id, i);
-      rmAddConnectionArea(teamShallowsID, id);
-      rmAddConnectionArea(shallowsID, id);
+      rmAddConnectionArea(teamPassID, id);
+      rmAddConnectionArea(passesID, id);
       rmSetAreaTerrainType(id, SNOWGRASS50);
       rmAddAreaTerrainLayer(id, SNOWGRASS75, 4, 7);
       rmAddAreaTerrainLayer(id, SNOWGRASS75, 2, 4);
@@ -508,10 +511,10 @@ void main(void)
 
    // Build all areas
    rmBuildAllAreas();
-   rmBuildConnection(shallowsID);
-   if (teamShallowsID != shallowsID)
+   rmBuildConnection(passesID);
+   if (teamPassID != passesID)
    {
-        rmBuildConnection(teamShallowsID);
+        rmBuildConnection(teamPassID);
    }
    rmPlaceObjectDefPerPlayer(startingSettlementID, true);
 
@@ -574,9 +577,6 @@ void main(void)
       rmSetAreaMaxBlobDistance(forestID, 20.0);
       rmSetAreaCoherence(forestID, 0.0);
 
-      // Hill trees?
-      //     if(rmRandFloat(0.0, 1.0)<0.2)
-      //       rmSetAreaBaseHeight(forestID, rmRandFloat(6.0, 9.0));
       rmSetAreaBaseHeight(forestID, 0);
       rmSetAreaSmoothDistance(forestID, 4);
       rmSetAreaHeightBlend(forestID, 2);
@@ -725,7 +725,7 @@ void main(void)
    for(i=1; <cNumberPlayers*40)
    {
       int id6=rmCreateArea("grass patch"+i);
-      rmSetAreaSize(id6, rmAreaTilesToFraction(10), rmAreaTilesToFraction(40));
+      rmSetAreaSize(id6, rmAreaTilesToFraction(10), rmAreaTilesToFraction(50));
       rmSetAreaTerrainType(id6, SNOWGRASS75);
       rmSetAreaMinBlobs(id6, 1);
       rmSetAreaMaxBlobs(id6, 5);
@@ -733,13 +733,13 @@ void main(void)
       rmSetAreaMaxBlobDistance(id6, 40.0);
       rmSetAreaCoherence(id6, 0.0);
       rmAddAreaConstraint(id6, shortAvoidImpassableLand);
-         rmAddAreaConstraint(id6, closeForestConstraint);
+      rmAddAreaConstraint(id6, closeForestConstraint);
       rmBuildArea(id6);
    }
 
    for(i=1; <cNumberPlayers*40)
    {
-      int id7=rmCreateArea("dirt patch"+i);
+      int id7 = rmCreateArea("dirt patch"+i);
       rmSetAreaSize(id7, rmAreaTilesToFraction(10), rmAreaTilesToFraction(50));
       rmSetAreaTerrainType(id7, SNOWSAND50);
       rmAddAreaTerrainLayer(id7, SNOWGRASS75, 0, 2);
