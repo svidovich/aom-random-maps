@@ -749,7 +749,7 @@ void main(void)
    // Straggler trees.
 
    int stragglerTreeID=rmCreateObjectDef("straggler tree");
-   rmAddObjectDefItem(stragglerTreeID, "oak tree", 1, 0.0);
+   rmAddObjectDefItem(stragglerTreeID, "pine", 1, 0.0);
    rmSetObjectDefMinDistance(stragglerTreeID, 12.0);
    rmSetObjectDefMaxDistance(stragglerTreeID, 15.0);
    rmAddObjectDefConstraint(stragglerTreeID, avoidImpassableLand);
@@ -828,7 +828,7 @@ void main(void)
 
    // Random trees.
    int randomTreeID=rmCreateObjectDef("random tree");
-   rmAddObjectDefItem(randomTreeID, "oak tree", 1, 0.0);
+   rmAddObjectDefItem(randomTreeID, "pine", 1, 0.0);
    rmSetObjectDefMinDistance(randomTreeID, 0.0);
    rmSetObjectDefMaxDistance(randomTreeID, rmXFractionToMeters(0.5));
    rmAddObjectDefConstraint(randomTreeID, rmCreateTypeDistanceConstraint("random tree", "all", 4.0));
