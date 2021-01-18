@@ -33,13 +33,13 @@ void main(void)
 
    // Force the map to be square.
    int size = 2.1 * sqrt(cNumberNonGaiaPlayers*playerTiles / 0.9);
-   rmEchoInfo("Map size="+size+"m x "+size+"m");
+   rmEchoInfo("Map size = "+size+"m x "+size+"m");
    rmSetMapSize(size, size);
 
    // Initialize the map terrain
    rmSetSeaLevel(0.0);
    rmTerrainInitialize("cliffNorseA", 12.0);
-   rmSetLightingSet("anatolia");
+   rmSetLightingSet("olympus");
 
    // Define some classes.
    int classIsland=rmDefineClass("island");
@@ -103,14 +103,8 @@ void main(void)
    int farAvoidAll = rmCreateTypeDistanceConstraint("far avoid all", "all", 10.0);
    int farAvoidImpassableLand = rmCreateTerrainDistanceConstraint("far avoid impassable land", "land", false, 20.0);
 
-   // Stay near shore
-   // TODO remove this
-   int nearShore=rmCreateTerrainMaxDistanceConstraint("near shore", "water", true, 6.0);
-
    //Forest close constraint
    int closeForestConstraint=rmCreateClassDistanceConstraint("closeforest v oakforest", rmClassID("forest"), 6.0);
-
-   // note - try and trim down on the number of these. Many must be redundant.
 
    // -------------Define objects
    // Close Objects
@@ -275,8 +269,6 @@ void main(void)
    rmSetObjectDefMinDistance(farPolarBearID, 50.0);
    rmSetObjectDefMaxDistance(farPolarBearID, 100.0);
    rmAddObjectDefConstraint(farPolarBearID, farStartingSettleConstraint);
-   rmAddObjectDefConstraint(farPolarBearID, nearShore);  // TODO this will need removed
-   // try and place near water
 
    // Add skraelings who beat you up!
    int skraelingCount = rmRandInt(1, 3);
@@ -285,7 +277,6 @@ void main(void)
    rmSetObjectDefMinDistance(farSkraelingID, 50.0);
    rmSetObjectDefMaxDistance(farSkraelingID, 150.0);
    rmAddObjectDefConstraint(farSkraelingID, farStartingSettleConstraint);
-   rmAddObjectDefConstraint(farSkraelingID, nearShore);
 
 
    // Coming up, we add three bonus huntables
@@ -338,7 +329,6 @@ void main(void)
    rmSetObjectDefMaxDistance(bonusHuntableID2, rmXFractionToMeters(0.5));
    rmAddObjectDefToClass(bonusHuntableID2, classBonusHuntable);
    rmAddObjectDefConstraint(bonusHuntableID2, farStartingSettleConstraint);
-   rmAddObjectDefConstraint(bonusHuntableID2, nearShore);
    rmAddObjectDefConstraint(bonusHuntableID2, avoidAll);
    rmAddObjectDefConstraint(bonusHuntableID2, closeForestConstraint);
 
@@ -400,10 +390,10 @@ void main(void)
    int centerID = rmCreateArea("center");
    rmSetAreaSize(centerID, 0.0005, 0.0005);
    rmSetAreaLocation(centerID, 0.5, 0.5);
-   rmSetAreaMinBlobs(centerID, 2);
-   rmSetAreaMaxBlobs(centerID, 4);
-   rmSetAreaMinBlobDistance(centerID, 5.0);
-   rmSetAreaMaxBlobDistance(centerID, 15.0);
+   rmSetAreaMinBlobs(centerID, 1);
+   rmSetAreaMaxBlobs(centerID, 2);
+   rmSetAreaMinBlobDistance(centerID, 0.0);
+   rmSetAreaMaxBlobDistance(centerID, 2.5);
    rmSetAreaCoherence(centerID, 0.1);
    rmAddAreaToClass(centerID, rmClassID("center"));
    rmBuildArea(centerID);
@@ -725,7 +715,7 @@ void main(void)
    for(i=1; <cNumberPlayers*40)
    {
       int id6=rmCreateArea("grass patch"+i);
-      rmSetAreaSize(id6, rmAreaTilesToFraction(10), rmAreaTilesToFraction(50));
+      rmSetAreaSize(id6, rmAreaTilesToFraction(10), rmAreaTilesToFraction(75));
       rmSetAreaTerrainType(id6, SNOWGRASS75);
       rmSetAreaMinBlobs(id6, 1);
       rmSetAreaMaxBlobs(id6, 5);
@@ -740,7 +730,7 @@ void main(void)
    for(i=1; <cNumberPlayers*40)
    {
       int id7 = rmCreateArea("dirt patch"+i);
-      rmSetAreaSize(id7, rmAreaTilesToFraction(10), rmAreaTilesToFraction(50));
+      rmSetAreaSize(id7, rmAreaTilesToFraction(10), rmAreaTilesToFraction(75));
       rmSetAreaTerrainType(id7, SNOWSAND50);
       rmAddAreaTerrainLayer(id7, SNOWGRASS75, 0, 2);
       rmSetAreaMinBlobs(id7, 1);
@@ -855,15 +845,4 @@ void main(void)
    rmAddObjectDefConstraint(groundDecorationID, avoidImpassableLand);
    rmAddObjectDefConstraint(groundDecorationID, avoidBuildings);
    rmPlaceObjectDefAtLoc(groundDecorationID, 0, 0.5, 0.5, 10*cNumberNonGaiaPlayers);
-
-   int fishVsFishID=rmCreateTypeDistanceConstraint("fish v fish", "fish", 25.0);
-   int fishLand=rmCreateTerrainDistanceConstraint("fish land", "land", true, 6.0);
-
-   int fishID=rmCreateObjectDef("fish");
-   rmAddObjectDefItem(fishID, "fish - salmon", 3, 9.0);
-   rmSetObjectDefMinDistance(fishID, 0.0);
-   rmSetObjectDefMaxDistance(fishID, rmXFractionToMeters(0.5));
-   rmAddObjectDefConstraint(fishID, fishVsFishID);
-   rmAddObjectDefConstraint(fishID, fishLand);
-   rmPlaceObjectDefAtLoc(fishID, 0, 0.5, 0.5, 5*cNumberNonGaiaPlayers);
 }
