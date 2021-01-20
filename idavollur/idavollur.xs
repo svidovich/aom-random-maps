@@ -500,12 +500,17 @@ void main(void)
    rmPlaceObjectDefPerPlayer(startingTowerID, true, 3);
    rmPlaceObjectDefPerPlayer(startingTower2ID, true, 1);
 
-   // Home Settlement
+   // Do our best to fairly add three settlements to each player zone, since
+   // there is a lot of space for each player to expand to.
    id=rmAddFairLoc("Settlement", false, true, 40, 100, 40, 16, true); /* bool forward bool inside */
    rmAddFairLocConstraint(id, shortAvoidImpassableLand);
    rmAddFairLocConstraint(id, avoidSettlement);
 
    id=rmAddFairLoc("Settlement", true, false,  40, 100, 40, 16);
+   rmAddFairLocConstraint(id, shortAvoidImpassableLand);
+   rmAddFairLocConstraint(id, avoidSettlement);
+
+   id=rmAddFairLoc("Settlement", false, false,  40, 100, 40, 16);
    rmAddFairLocConstraint(id, shortAvoidImpassableLand);
    rmAddFairLocConstraint(id, avoidSettlement);
 
