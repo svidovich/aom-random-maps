@@ -242,26 +242,21 @@ void main(void)
    }
 
    int lake = 1;
-   if(rmRandFloat (0,1) < 0.25)
-         lake = 0;
    rmEchoInfo ("lake="+lake);
 
-   if(lake == 1)
-   {
-      int centerLake=rmCreateArea("lake in the middle");
-      rmSetAreaSize(centerLake, 0.03, 0.04);
-      rmSetAreaLocation(centerLake, 0.5, 0.5);
-      rmSetAreaWaterType(centerLake, "Egyptian Nile Shallow");
-      rmSetAreaBaseHeight(centerLake, 0.0);
-      rmSetAreaMinBlobs(centerLake, 5);
-      rmSetAreaMaxBlobs(centerLake, 7);
-      rmSetAreaMinBlobDistance(centerLake, 16.0);
-      rmSetAreaMaxBlobDistance(centerLake, 20.0);
-      rmSetAreaSmoothDistance(centerLake, 50);
-      rmSetAreaCoherence(centerLake, 0.25);
-      rmAddAreaToClass(centerLake, classLake);
-      rmBuildArea(centerLake);
-   }
+   int centerLake=rmCreateArea("lake in the middle");
+   rmSetAreaSize(centerLake, 0.03, 0.04);
+   rmSetAreaLocation(centerLake, 0.5, 0.5);
+   rmSetAreaWaterType(centerLake, "Egyptian Nile Shallow");
+   rmSetAreaBaseHeight(centerLake, 0.0);
+   rmSetAreaMinBlobs(centerLake, 5);
+   rmSetAreaMaxBlobs(centerLake, 7);
+   rmSetAreaMinBlobDistance(centerLake, 16.0);
+   rmSetAreaMaxBlobDistance(centerLake, 20.0);
+   rmSetAreaSmoothDistance(centerLake, 50);
+   rmSetAreaCoherence(centerLake, 0.25);
+   rmAddAreaToClass(centerLake, classLake);
+   rmBuildArea(centerLake);
 
    // Connections
    int classConnection = rmDefineClass("connection");
@@ -612,23 +607,77 @@ void main(void)
          failCount=0;
    }
 
-   // TODO Use fish / decoration logic to place crocs, etc.
-   int fishVsFishID=rmCreateTypeDistanceConstraint("fish v fish", "fish", 8.0);
-   int fishID=rmCreateObjectDef("fish");
-   rmAddObjectDefItem(fishID, "fish - mahi", 1, 0.0);
-   rmSetObjectDefMinDistance(fishID, 0.0);
-   rmSetObjectDefMaxDistance(fishID, rmXFractionToMeters(0.5));
-   rmAddObjectDefConstraint(fishID, fishVsFishID);
-   int fishLand = rmCreateTerrainDistanceConstraint("fish land", "land", true, 6.0);
-   rmAddObjectDefConstraint(fishID, fishLand);
-   if(lake == 1)
-      rmPlaceObjectDefAtLoc(fishID, 0, 0.5, 0.5, rmRandInt(0,4));
+   int crocID = rmCreateObjectDef("crocodile");
+   // Force the crocs to remain in the lake
+   int crocsCenterLakeConstraint = rmCreateAreaConstraint("crocs stay in the lake", centerLake);
+   rmAddObjectDefConstraint(crocID, crocsCenterLakeConstraint);
+   rmAddObjectDefItem(crocID, "crocodile", 1, 1.0);
+   rmSetObjectDefMinDistance(crocID, 0.0);
+   rmSetObjectDefMaxDistance(crocID, 5.0);
+   rmPlaceObjectDefAtAreaLoc(crocID, 0, centerLake, rmRandInt(2,4));
 
-   // Grass
+   // Make sure that all water decorations stay in the lake
+   int centerLakeAreaConstraint = rmCreateAreaConstraint("all water decorations stay in the lake", centerLake);
+
+   // Add an object definition for water reeds
+   int waterReedsID = rmCreateObjectDef("water reeds");
+   // Add water reeds that stay in the lake
+   rmAddObjectDefItem(waterReedsID, "water reeds", 3, 1.0);
+   // Add the center lake constraint to the reeds
+   rmAddObjectDefConstraint(waterReedsID, centerLakeAreaConstraint);
+   // We want them to be in kind of a ring around the center
+   // Set the minimum distance to x,
+   // Set the maximum distance to x+dx
+   rmSetObjectDefMinDistance(waterReedsID, 20.0);
+   rmSetObjectDefMaxDistance(waterReedsID, 30.0);
+   // We want there to be lots of them, so set the 'randint' arg high
+   // Place the objects
+   rmPlaceObjectDefAtAreaLoc(waterReedsID, 0, centerLake, rmRandInt(60, 80));
+
+   int shallowsGazelleID = rmCreateObjectDef("shallows gazelle");
+   // Add gazelles that stay in the lake
+   rmAddObjectDefItem(shallowsGazelleID, "gazelle", 2, 3.0);
+   rmAddObjectDefConstraint(shallowsGazelleID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsGazelleID, 20.0);
+   rmSetObjectDefMaxDistance(shallowsGazelleID, 30.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsGazelleID, 0, centerLake, rmRandInt(4, 6));
+
+   int shallowsBuffaloID = rmCreateObjectDef("shallows buffalo");
+   // Add water buffalo that stay in the lake
+   rmAddObjectDefItem(shallowsBuffaloID, "water buffalo", 1, 3.0);
+   rmAddObjectDefConstraint(shallowsBuffaloID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsBuffaloID, 20.0);
+   rmSetObjectDefMaxDistance(shallowsBuffaloID, 30.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsBuffaloID, 0, centerLake, rmRandInt(3, 5));
+
+   int shallowBushesID = rmCreateObjectDef("shallows bushes");
+   // Add bushes that stay in the lake
+   rmAddObjectDefItem(shallowBushesID, "bush", 3, 1.0);
+   rmAddObjectDefConstraint(shallowBushesID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowBushesID, 20.0);
+   rmSetObjectDefMaxDistance(shallowBushesID, 30.0);
+   rmPlaceObjectDefAtAreaLoc(shallowBushesID, 0, centerLake, rmRandInt(15, 25));
+
+   int shallowGrassID = rmCreateObjectDef("shallows grass");
+   // Add grass that stays in the lake
+   rmAddObjectDefItem(shallowGrassID, "grass", 3, 2.0);
+   rmAddObjectDefConstraint(shallowGrassID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowGrassID, 20.0);
+   rmSetObjectDefMaxDistance(shallowGrassID, 30.0);
+   rmPlaceObjectDefAtAreaLoc(shallowGrassID, 0, centerLake, rmRandInt(25, 35));
+
+   int shallowsPalmID = rmCreateObjectDef("shallows palm");
+   // Add some palms that stay near the lake
+   rmAddObjectDefItem(shallowsPalmID, "palm", 2, 2.0);
+   rmAddObjectDefConstraint(shallowsPalmID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsPalmID, 25.0);
+   rmSetObjectDefMaxDistance(shallowsPalmID, 35.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsPalmID, 0, centerLake, rmRandInt(10, 15));
+
    int avoidAll=rmCreateTypeDistanceConstraint("avoid all", "all", 6.0);
 
    int rockID=rmCreateObjectDef("rock");
-   rmAddObjectDefItem(rockID, "rock limestone sprite", 1, 0.0);
+   rmAddObjectDefItem(rockID, "rock sandstone small", 1, 0.0);
    rmSetObjectDefMinDistance(rockID, 0.0);
    rmSetObjectDefMaxDistance(rockID, rmXFractionToMeters(0.5));
    rmAddObjectDefConstraint(rockID, avoidAll);
@@ -636,22 +685,18 @@ void main(void)
    rmPlaceObjectDefAtLoc(rockID, 0, 0.5, 0.5, 50*cNumberNonGaiaPlayers);
 
    int rock2ID=rmCreateObjectDef("rock2");
-   rmAddObjectDefItem(rock2ID, "rock limestone small", 1, 1.0);
-   rmAddObjectDefItem(rock2ID, "rock limestone sprite", 3, 3.0);
+   rmAddObjectDefItem(rock2ID, "rock sandstone small", 1, 1.0);
+   rmAddObjectDefItem(rock2ID, "rock sandstone sprite", 2, 6.0);
    rmSetObjectDefMinDistance(rock2ID, 0.0);
    rmSetObjectDefMaxDistance(rock2ID, rmXFractionToMeters(0.5));
    rmAddObjectDefConstraint(rock2ID, avoidAll);
    rmAddObjectDefConstraint(rock2ID, avoidImpassableLand);
    rmPlaceObjectDefAtLoc(rock2ID, 0, 0.5, 0.5, 10*cNumberNonGaiaPlayers);
 
-   int decorationID=rmCreateObjectDef("water decoration");
-   rmAddObjectDefItem(decorationID, "water decoration", 3, 5.0);
+   int decorationID=rmCreateObjectDef("bush");
+   rmAddObjectDefItem(decorationID, "bush", 3, 5.0);
    rmSetObjectDefMinDistance(decorationID, 0.0);
    rmSetObjectDefMaxDistance(decorationID, rmXFractionToMeters(0.5));
-   if(lake==1)
-      rmPlaceObjectDefAtLoc(decorationID, 0, 0.5, 0.5, 2*cNumberNonGaiaPlayers);
-
-  // Text
-   rmSetStatusText("",1.0);
+   rmPlaceObjectDefAtLoc(decorationID, 0, 0.5, 0.5, 2*cNumberNonGaiaPlayers);
 
 }
