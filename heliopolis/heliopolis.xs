@@ -15,7 +15,6 @@ string SANDDIRT50 = "SandDirt50";
 void main(void)
 
 {
-
   // Text
    rmSetStatusText("",0.01);
 
@@ -62,7 +61,6 @@ void main(void)
    int shortPlayerConstraint=rmCreateClassDistanceConstraint("short stay away from players", classPlayer, 8);
    int patchPlayerConstraint=rmCreateClassDistanceConstraint("elev stay away from players", classPlayer, 8);
 
-
    // Settlement constraints
    int veryShortAvoidSettlement=rmCreateTypeDistanceConstraint("statues avoid TC", "AbstractSettlement", 6.0);
    int shortAvoidSettlement=rmCreateTypeDistanceConstraint("objects avoid TC by short distance", "AbstractSettlement", 20.0);
@@ -86,7 +84,6 @@ void main(void)
    int shortAvoidImpassableLand=rmCreateTerrainDistanceConstraint("short avoid impassable land", "land", false, 6.0);
    int lakeConstraint=rmCreateClassDistanceConstraint("avoid the center", classLake, 25.0);
    int firstForestConstraint=rmCreateClassDistanceConstraint("resources v forest", rmClassID("starting forest"), 5.0);
-
 
    // -------------Define objects
    // Close Objects
@@ -533,7 +530,6 @@ void main(void)
    // Note placed _per player_, which is interesting and cool
    rmPlaceObjectDefPerPlayer(relicID, false, 2);
 
-
    // Berries.
    rmPlaceObjectDefPerPlayer(farBerriesID, false, 2);
 
@@ -549,9 +545,6 @@ void main(void)
    rmPlaceObjectDefAtLoc(randomTreeID, 0, 0.5, 0.5, 10*cNumberNonGaiaPlayers);
 
    int allObjConstraint=rmCreateTypeDistanceConstraint("all obj", "all", 6.0);
-
-
-
 
    // Forest.
    int forestConstraint=rmCreateClassDistanceConstraint("forest v forest", rmClassID("forest"), 35.0);
@@ -628,13 +621,40 @@ void main(void)
    rmSetObjectDefMaxDistance(shallowsGazelleID, 30.0);
    rmPlaceObjectDefAtAreaLoc(shallowsGazelleID, 0, centerLake, rmRandInt(4, 6));
 
-   int shallowsBuffaloID = rmCreateObjectDef("shallows buffalo");
+   int shallowsLargeHuntablesID = rmCreateObjectDef("shallows large huntables");
    // Add water buffalo that stay in the lake
-   rmAddObjectDefItem(shallowsBuffaloID, "water buffalo", 1, 3.0);
-   rmAddObjectDefConstraint(shallowsBuffaloID, centerLakeAreaConstraint);
-   rmSetObjectDefMinDistance(shallowsBuffaloID, 20.0);
-   rmSetObjectDefMaxDistance(shallowsBuffaloID, 30.0);
-   rmPlaceObjectDefAtAreaLoc(shallowsBuffaloID, 0, centerLake, rmRandInt(3, 5));
+   rmAddObjectDefItem(shallowsLargeHuntablesID, "water buffalo", 1, 3.0);
+   rmAddObjectDefItem(shallowsLargeHuntablesID, "giraffe", rmRandInt(1,2), 3.0);
+   rmAddObjectDefConstraint(shallowsLargeHuntablesID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsLargeHuntablesID, 20.0);
+   rmSetObjectDefMaxDistance(shallowsLargeHuntablesID, 30.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsLargeHuntablesID, 0, centerLake, rmRandInt(2, 3));
+
+   int shallowsPredatorsID = rmCreateObjectDef("shallows predators");
+   int lionCount = rmRandInt(0, 1);
+   // If we don't have lions, we should at least have hyenas.
+   if (lionCount == 0)
+   {
+      rmAddObjectDefItem(shallowsPredatorsID, "hyena", rmRandInt(2,3), 4.0);
+   }
+   else
+   {
+      rmAddObjectDefItem(shallowsPredatorsID, "lion", lionCount, 4.0);
+   }
+   int predatorPacks = rmRandInt(2,6);
+   rmAddObjectDefConstraint(shallowsPredatorsID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsPredatorsID, 35.0);
+   rmSetObjectDefMaxDistance(shallowsPredatorsID, 45.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsPredatorsID, 0, centerLake, predatorPacks);
+
+
+   int shallowsCranesID = rmCreateObjectDef("shallows cranes");
+   // Add crowned cranes that stay in the lake
+   rmAddObjectDefItem(shallowsCranesID, "crowned crane", 4, 3.0);
+   rmAddObjectDefConstraint(shallowsCranesID, centerLakeAreaConstraint);
+   rmSetObjectDefMinDistance(shallowsCranesID, 25.0);
+   rmSetObjectDefMaxDistance(shallowsCranesID, 35.0);
+   rmPlaceObjectDefAtAreaLoc(shallowsCranesID, 0, centerLake, rmRandInt(1, 4));
 
    int shallowBushesID = rmCreateObjectDef("shallows bushes");
    // Add bushes that stay in the lake
